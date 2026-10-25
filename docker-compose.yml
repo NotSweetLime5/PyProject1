@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: shopping_pg
+    environment:
+      POSTGRES_USER: shopping
+      POSTGRES_PASSWORD: shopping123
+      POSTGRES_DB: shopping
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      # 宿主机仍用 5433 连（本机另有一个跑在 5432 的 PG18，不能撞）
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopping -d shopping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: shopping_redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # 一次性任务：跑迁移后退出。
+  # 把迁移和启动绑在一起（api 的 command 里先 alembic upgrade）会让每个副本都跑一遍迁移，
+  # 多副本同时启动就是互相踩。独立成服务 + service_completed_successfully 才是对的。
+  migrate:
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://shopping:shopping123@postgres:5432/shopping
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["tools"]
+
+  api:
+    build: ./backend
+    # 不写 container_name：要能 scale。超时关单的 Redis 锁就是为多副本准备的
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    env_file: ./backend/.env
+    environment:
+      # 容器内的主机名是服务名，不是 localhost —— 这三行覆盖 env_file 里的本机地址
+      DATABASE_URL: postgresql+asyncpg://shopping:shopping123@postgres:5432/shopping
+      REDIS_URL: redis://redis:6379/0
+      APP_ENV: ${APP_ENV:-prod}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["app"]
+
+  web:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    profiles: ["app"]
+
+volumes:
+  pgdata:
+  redisdata:

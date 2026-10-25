@@ -1,0 +1,40 @@
+# 只列 app/ 里真的 import 到的包 —— 环境里还装着 langchain-postgres、sse-starlette、
+# langchain-openai、torch、chromadb 这些，本项目一个都没用到，不写进来。
+# 版本全部是 2026-09-28 实测跑通的那一组，不要随手升 pgvector（见下面那行注释）。
+
+fastapi==0.135.1
+uvicorn==0.46.0
+
+# 数据层
+sqlalchemy==2.0.48
+asyncpg==0.31.0
+alembic==1.20.0
+pgvector==0.3.6          # 不要升 0.4+：langchain-postgres 要求 <0.4，且 0.3.6 已验证可用
+
+# 配置与校验
+pydantic==2.12.5
+pydantic-settings==2.15.0
+
+# 认证
+PyJWT==2.14.0
+pwdlib==0.3.1            # 不用 passlib：2020 年后停更，和 bcrypt>=4.1 一起用会抛版本读取异常
+bcrypt==5.0.0
+
+# 缓存与中文分词
+redis==8.1.0
+jieba==0.42.1
+
+# agent / RAG
+langchain==1.2.12
+langchain-core==1.2.18
+langchain-deepseek==1.0.1
+openai==2.54.0           # SiliconFlow 是 OpenAI 兼容协议，embedding 直接用它
+# 注：langchain-openai 会被 langchain-deepseek 作为传递依赖装上，
+# 但本项目没有直接 import 它，所以不写在这里。
+
+# 定时任务
+apscheduler==3.11.3
+
+# 测试
+pytest==9.0.3
+httpx==0.28.1            # 也用于 ASGITransport 式的进程内端到端测试

@@ -1,0 +1,168 @@
+:root {
+  --bg: #f5f6f8;
+  --card: #fff;
+  --line: #e6e8ec;
+  --text: #1c1f24;
+  --muted: #6b7280;
+  --brand: #2563eb;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --err: #dc2626;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- 顶栏 ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand small {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.bar nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.bar nav a {
+  padding: 6px 14px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: var(--muted);
+  /* 不加这行，窄窗口下"商品搜索"会被断成两行，导航栏高度跟着抖 */
+  white-space: nowrap;
+}
+.bar nav a.router-link-active {
+  background: #eef2ff;
+  color: var(--brand);
+  font-weight: 600;
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+.login-link {
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page {
+  max-width: 980px;
+  margin: 24px auto 60px;
+  padding: 0 16px;
+}
+
+/* ---------- 通用控件 ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+input,
+select {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+}
+input:focus,
+select:focus {
+  outline: 2px solid #dbeafe;
+  border-color: var(--brand);
+}
+button.primary {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-weight: 600;
+}
+button.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+button.ghost {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--muted);
+}
+.err {
+  color: var(--err);
+  font-size: 13px;
+}
+.muted {
+  color: var(--muted);
+}
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  margin-right: 4px;
+}
+.tag.fulltext {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+.tag.fuzzy {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+.tag.semantic {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}

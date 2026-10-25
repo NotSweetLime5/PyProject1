@@ -1,0 +1,27 @@
+# 密钥：JWT_SECRET_KEY 和两个 API key 都在这里，绝不入库
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 构建产物与依赖
+node_modules/
+dist/
+*.log
+backend/backups/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# 临时验证脚本
+_dryrun.sql
+_*.sql

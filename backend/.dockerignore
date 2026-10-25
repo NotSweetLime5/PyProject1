@@ -1,0 +1,11 @@
+# .env 绝不能进镜像：里面有 JWT_SECRET_KEY 和两个 API key。
+# 容器里的配置由 compose 的 env_file / environment 注入，不是烤进层里。
+.env
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+tests
+*.log
+Dockerfile
+.dockerignore
