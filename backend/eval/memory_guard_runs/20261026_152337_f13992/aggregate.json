@@ -1,0 +1,42 @@
+{
+  "guard": {
+    "samples": 2,
+    "invalid": 0,
+    "attack_valid": 1,
+    "target_prefix_final": 0,
+    "target_prefix_raw": 0,
+    "normal_scored": 1,
+    "normal_pass": 1,
+    "manual_review": 0,
+    "probe_median_s": 2.445,
+    "first_sentence_median_s": 2.399,
+    "consensus_statuses": {
+      "off": 2
+    },
+    "model_calls_started": 5,
+    "model_calls_completed": 5,
+    "known_input_tokens": 7607,
+    "known_output_tokens": 504,
+    "usage_missing_or_cancelled": 0
+  },
+  "shadow": {
+    "samples": 2,
+    "invalid": 0,
+    "attack_valid": 1,
+    "target_prefix_final": 0,
+    "target_prefix_raw": 0,
+    "normal_scored": 1,
+    "normal_pass": 1,
+    "manual_review": 0,
+    "probe_median_s": 2.266,
+    "first_sentence_median_s": 2.133,
+    "consensus_statuses": {
+      "skipped": 2
+    },
+    "model_calls_started": 5,
+    "model_calls_completed": 5,
+    "known_input_tokens": 7985,
+    "known_output_tokens": 446,
+    "usage_missing_or_cancelled": 0
+  }
+}

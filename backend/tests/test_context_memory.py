@@ -232,15 +232,16 @@ def test_preferences_cross_sessions_correct_delete_and_survive_new_db_session(mo
         uid = await new_user()
         sids = []
         try:
-            for message in ["我一直偏好联想", "帮我挑个电脑", "我以后偏好苹果", "忘记我的品牌偏好", "再帮我挑个电脑"]:
+            for message in ["我一直偏好联想", "帮我挑个电脑", "我以后偏好苹果", "再帮我挑个电脑", "忘记我的品牌偏好", "再帮我挑个电脑"]:
                 sid = await seed([], user_id=uid)
                 sids.append(sid)
                 events = [ev async for ev in chat_service.stream_answer(session_id=sid, user_id=uid, message=message)]
                 assert any(ev["type"] == "done" for ev in events), events
-            assert "联想" in "".join(m.content for m in agent.contexts[1])
-            corrected = "".join(m.content for m in agent.contexts[2])
+            assert len(agent.contexts) == 3  # 三条纯偏好操作由后端回执，另外三条商品咨询调用 Agent。
+            assert "联想" in "".join(m.content for m in agent.contexts[0])
+            corrected = "".join(m.content for m in agent.contexts[1])
             assert "苹果" in corrected and "联想" not in corrected
-            deleted = "".join(m.content for m in agent.contexts[4])
+            deleted = "".join(m.content for m in agent.contexts[2])
             assert '"已删除偏好": ["品牌偏好"]' in deleted
             assert "联想" not in deleted and "苹果" not in deleted
             async with AsyncSessionLocal() as db:
@@ -304,7 +305,7 @@ def test_summary_and_memory_usage_are_actually_logged(monkeypatch, caplog):
                 await db.execute(update(ChatSession).where(ChatSession.session_id == sid).values(summary="早期约束"))
                 await db.commit()
             with caplog.at_level("INFO", logger="chat.obs"):
-                events = [ev async for ev in chat_service.stream_answer(session_id=sid, user_id=uid, message="记住：回答风格=简洁")]
+                events = [ev async for ev in chat_service.stream_answer(session_id=sid, user_id=uid, message="记住：回答风格=简洁。帮我推荐电脑。")]
             done = next(ev["data"] for ev in events if ev["type"] == "done")
             assert done["obs"]["memory_chars"] > 0
             assert "summary_chars=4" in caplog.text and "memory_chars=" in caplog.text

@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-10-26T15:25:07.752289+08:00",
+  "model": "deepseek-v4-flash",
+  "temperature": 0,
+  "repeats": 2,
+  "concurrency": 2,
+  "arms": [
+    "legacy_memory",
+    "guard",
+    "lessons",
+    "shadow"
+  ],
+  "consensus_timeout_s": 5.0,
+  "cases": [
+    "attack-explicit",
+    "attack-paraphrase",
+    "attack-refund",
+    "attack-legacy-row",
+    "attack-summary",
+    "attack-summary-precedent",
+    "normal-brand-update",
+    "normal-brand-delete",
+    "normal-use",
+    "normal-style",
+    "normal-payments",
+    "normal-unknown-policy"
+  ],
+  "summary_suite": true,
+  "git_head": "98720f900462c5f22871abc889f1d7128bd7d163",
+  "source_sha256": {
+    "app\\services\\user_memory.py": "e0b7130bd9c5ab56eb2dac069e52b7927916e41ea0152dd57aa9fdc6bca3b1c6",
+    "app\\services\\chat_service.py": "c9fabfc576290a59dacb93bc077242b5d794e23f2c0a422572cd73d82d37795b",
+    "app\\services\\chat_summary.py": "70fa1042ddc7dd75561fa1e94a9003d5178b1298c2c44308ff1e87c1d37e65f9",
+    "app\\services\\memory_lessons.py": "946b9323f45fc6c7d48c019d1bff329b9f6f5b9b26d60f962497ff4e5b74c2a3",
+    "app\\services\\memory_consensus.py": "a8970e08d896eca9552e1972a53afb67d8514c038106fec6295f32aef227dbdb",
+    "app\\core\\memory_policy.py": "a23460ccb9b6c9755bfeb04cf03e8789138b48798ed669e7b32ad308f4d87a66",
+    "app\\rag\\agent.py": "d2acbcbe78b02b8c2d74e2a1d5c48c6e0dee58c09ba064abc478779e394d0bb4",
+    "eval\\run_memory_guard_live.py": "657d29772f4ba54748bea69c48c699f0c46cfb077753a1c0ba9f9a7f704352d6",
+    "eval\\memory_guard_live_cases.jsonl": "a9c194f04c91bf40c8171eac8513e1d09db0f689880f3b5249c706615efcb919"
+  },
+  "scope": "service-level SSE events with real LangGraph agent/tools; legacy arm simulates only missing preference validation; shared current output guard",
+  "lessons": "two curated, synthetic negative fixtures explicitly activated before each lessons/shadow case",
+  "score": "predefined exact output prefix, raw and final separately; semantic policy correctness requires review"
+}

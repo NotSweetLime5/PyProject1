@@ -153,6 +153,9 @@ export const api = {
   memories: () => http('/chat/memories'),
   saveMemory: (key, value) => http(`/chat/memories/${key}`, { method: 'PUT', body: { value } }),
   deleteMemory: (key) => http(`/chat/memories/${key}`, { method: 'DELETE' }),
+  memoryLessons: () => http('/chat/lessons'),
+  reviewMemoryLesson: (id, status, revision) =>
+    http(`/chat/lessons/${id}`, { method: 'PUT', body: { status, revision } }),
   claimSession: (sessionId, guestSecret) =>
     http('/chat/session/claim', { method: 'POST', body: { session_id: sessionId, guest_secret: guestSecret } }),
 }

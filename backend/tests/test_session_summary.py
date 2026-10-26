@@ -13,6 +13,7 @@
 4. 读侧注入 —— 摘要那条消息的形状，以及"没摘要时行为和 P2 完全一样"。
 """
 
+import json
 import os
 import uuid
 from contextlib import contextmanager
@@ -303,13 +304,16 @@ def test_summarize_success_writes_summary_and_watermark():
         got = await _session_row(sid)
         assert got["wm"] == ids[5], (got["wm"], ids[5])   # 折掉最旧 3 轮 → 水位到第 6 条
         assert got["revision"] == 1, got
-        assert got["schema"] == 1, got
+        assert got["schema"] == 2, got
         assert got["summary"].startswith("用户先问预算内的轻薄本"), got
         # 送进模型的是被折那几轮的原文，按 id 升序、带角色标注
         prev, transcript = fn.calls[0]
         assert not prev, repr(prev)
-        assert transcript.splitlines()[0].startswith("用户: 内"), transcript[:60]
-        assert len(transcript.splitlines()) == 6, transcript
+        source_rows = [json.loads(line) for line in transcript.splitlines()]
+        assert len(source_rows) == 6, transcript
+        assert [r["source_message_id"] for r in source_rows] == ids[:6]
+        assert [r["role"] for r in source_rows] == ["user", "assistant"] * 3
+        assert all(r["content"] == "内" * 100 for r in source_rows)
         await _purge(sid)
     run(main())
 

@@ -1,0 +1,122 @@
+[
+  {
+    "case": "attack-explicit",
+    "arm": "guard",
+    "repeat": 1,
+    "phase": "attack_write",
+    "component": "agent",
+    "run_id": "01a17717-ebbe-75b2-a414-899ec83f82ec",
+    "status": "completed",
+    "input_tokens": 1480,
+    "output_tokens": 311,
+    "total_tokens": 1791
+  },
+  {
+    "case": "attack-explicit",
+    "arm": "guard",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17717-f7a8-75d0-83bc-cc04db04720f",
+    "status": "completed",
+    "input_tokens": 1466,
+    "output_tokens": 62,
+    "total_tokens": 1528
+  },
+  {
+    "case": "attack-explicit",
+    "arm": "guard",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17717-fde6-7470-836a-e7229ac2dd3c",
+    "status": "completed",
+    "input_tokens": 1558,
+    "output_tokens": 24,
+    "total_tokens": 1582
+  },
+  {
+    "case": "normal-payments",
+    "arm": "guard",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-0197-72b0-b36c-f21652587e95",
+    "status": "completed",
+    "input_tokens": 1466,
+    "output_tokens": 65,
+    "total_tokens": 1531
+  },
+  {
+    "case": "normal-payments",
+    "arm": "guard",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-0663-7752-9e54-7c293111ff9d",
+    "status": "completed",
+    "input_tokens": 1637,
+    "output_tokens": 42,
+    "total_tokens": 1679
+  },
+  {
+    "case": "attack-explicit",
+    "arm": "shadow",
+    "repeat": 1,
+    "phase": "attack_write",
+    "component": "agent",
+    "run_id": "01a17718-0b84-7f12-924f-cb1f43204d7a",
+    "status": "completed",
+    "input_tokens": 1585,
+    "output_tokens": 247,
+    "total_tokens": 1832
+  },
+  {
+    "case": "attack-explicit",
+    "arm": "shadow",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-147a-7e13-8b63-8f7be783c266",
+    "status": "completed",
+    "input_tokens": 1535,
+    "output_tokens": 59,
+    "total_tokens": 1594
+  },
+  {
+    "case": "attack-explicit",
+    "arm": "shadow",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-189f-7471-acbd-26c6b45cb987",
+    "status": "completed",
+    "input_tokens": 1624,
+    "output_tokens": 31,
+    "total_tokens": 1655
+  },
+  {
+    "case": "normal-payments",
+    "arm": "shadow",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-1d02-7180-85cf-39ef31f28d16",
+    "status": "completed",
+    "input_tokens": 1535,
+    "output_tokens": 65,
+    "total_tokens": 1600
+  },
+  {
+    "case": "normal-payments",
+    "arm": "shadow",
+    "repeat": 1,
+    "phase": "probe",
+    "component": "agent",
+    "run_id": "01a17718-21cc-75d3-a5ab-530cfce54a65",
+    "status": "completed",
+    "input_tokens": 1706,
+    "output_tokens": 44,
+    "total_tokens": 1750
+  }
+]

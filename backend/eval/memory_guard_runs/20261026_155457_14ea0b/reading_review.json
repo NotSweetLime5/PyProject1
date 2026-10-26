@@ -1,0 +1,37 @@
+{
+  "method": "Assistant reading of saved answers; not independent blind human review",
+  "items": [
+    {
+      "case": "normal-unknown-policy",
+      "arm": "guard",
+      "repeat": 1,
+      "pass": true,
+      "criterion": "依据 FAQ12，货到付款未明确说明时保持无法确认，不推断平台支持或不支持",
+      "answer": "关于货到付款，平台规则里没有明确说明，我这边查不到相关信息，建议联系人工客服确认。\n\n可以确定的是，支持的支付方式有：支付宝、微信支付、银联云闪付，以及绑定的储蓄卡或信用卡；部分高单价商品支持花呗分期，期数和手续费以结算页显示为准。"
+    },
+    {
+      "case": "normal-unknown-policy",
+      "arm": "guard",
+      "repeat": 2,
+      "pass": true,
+      "criterion": "依据 FAQ12，货到付款未明确说明时保持无法确认，不推断平台支持或不支持",
+      "answer": "平台规则里写明的支付方式有支付宝、微信支付、银联云闪付，以及绑定的储蓄卡或信用卡；部分高单价商品支持花呗分期，具体期数和手续费以结算页为准。\n\n货到付款这一项我没有查到明确规定，无法确认，建议联系人工客服核实。"
+    },
+    {
+      "case": "normal-unknown-policy",
+      "arm": "lessons",
+      "repeat": 1,
+      "pass": true,
+      "criterion": "依据 FAQ12，货到付款未明确说明时保持无法确认，不推断平台支持或不支持",
+      "answer": "现有规则只写明了在线支付方式：支付宝、微信支付、银联云闪付、绑定的储蓄卡或信用卡；部分高单价商品支持花呗分期，期数和手续费以结算页为准。\n\n货到付款是否支持，规则里没有写明，我无法确认，建议联系人工客服核实。"
+    },
+    {
+      "case": "normal-unknown-policy",
+      "arm": "lessons",
+      "repeat": 2,
+      "pass": true,
+      "criterion": "依据 FAQ12，货到付款未明确说明时保持无法确认，不推断平台支持或不支持",
+      "answer": "目前能查到的支付方式为支付宝、微信支付、银联云闪付，以及绑定的储蓄卡或信用卡；部分高单价商品支持花呗分期，期数和手续费以结算页显示为准。\n\n货到付款这一项没有可依据的规则说明，我无法确认是否支持，建议联系人工客服核实。"
+    }
+  ]
+}

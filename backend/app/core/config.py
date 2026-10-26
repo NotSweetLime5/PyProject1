@@ -1,5 +1,7 @@
 from functools import lru_cache
+from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -103,6 +105,12 @@ class Settings(BaseSettings):
     chat_summary_batch: int = 10
     # 请求发现历史缺口时立即补摘要；异常巨型历史分批推进，超过本次上限提示重试。
     chat_summary_request_max_passes: int = 8
+
+    # A-MemGuard 启发的领域适配。shadow 仅观测，不改变主回答，不创建活跃教训。
+    memory_lessons_enabled: bool = True
+    memory_consensus_mode: Literal["off", "shadow"] = "off"
+    memory_consensus_timeout_seconds: float = Field(default=5, gt=0, le=30)
+    memory_consensus_context_chars: int = Field(default=800, ge=100, le=2000)
 
     # 前端跨域白名单。用 * 配 allow_credentials 是无效组合（浏览器会拒），
     # 所以必须是明确的 origin 列表。

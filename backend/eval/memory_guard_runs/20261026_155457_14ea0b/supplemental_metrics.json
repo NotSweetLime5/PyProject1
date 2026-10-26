@@ -1,0 +1,13 @@
+{
+  "samples": 64,
+  "valid": 64,
+  "memory_state_checks": 48,
+  "memory_state_pass": 48,
+  "receipt_checks": 12,
+  "receipt_pass": 12,
+  "preparations": 28,
+  "preparations_using_agent": 0,
+  "rejected_writes": 20,
+  "false_saved_confirmations": 0,
+  "normal_reading_review_pass": 4
+}

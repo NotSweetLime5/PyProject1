@@ -1,8 +1,9 @@
 """客服会话编排：输入过滤 → 取历史 → 跑 agent → 输出脱敏 → 落库。"""
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
-from contextlib import aclosing
+from contextlib import aclosing, suppress
 from dataclasses import dataclass
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -16,7 +17,7 @@ from app.core.sensitive import filter_input, mask
 from app.models.custcare import ChatMessage, ChatSession
 from app.rag.agent import get_agent
 from app.services.turns import group_turns
-from app.services import user_memory
+from app.services import memory_consensus, memory_lessons, user_memory
 from app.services.chat_lease import ChatBusy, session_lease
 
 settings = get_settings()
@@ -49,7 +50,7 @@ class HistoryWindow:
     messages: list
     chars: int
     count: int
-    stop_reason: str  # char_budget | max_messages | session_start | scan_guard
+    stop_reason: str  # char_budget | max_messages | session_start | scan_guard | memory_command
     scanned: int
     blocks: int
     first_turn_over_budget: bool
@@ -391,6 +392,8 @@ async def _stream_answer(
     整个函数自己开 session，不用 Depends(get_db) —— 流式响应下 FastAPI 会在
     响应体开始推送之前就执行完依赖的 teardown，那个 session 届时已经关了。
     """
+    candidates, remaining_query = user_memory.split_request(message)
+    agent_query = remaining_query if candidates else message
     async with AsyncSessionLocal() as db:
         
         
@@ -422,7 +425,8 @@ async def _stream_answer(
             return
 
         # 先只读一次判断缺口；需要补摘要时释放本事务，再做请求内压缩。
-        window = await load_history(db, session_id, user_id)
+        window = (await load_history(db, session_id, user_id) if agent_query else
+                  HistoryWindow([], 0, 0, "memory_command", 0, 0, False))
     if window.has_gap:
         yield {"type": "status", "data": "正在整理较早的对话…"}
         try:
@@ -437,32 +441,63 @@ async def _stream_answer(
         user_msg = await save_message(
             db, session_id=session_id, user_id=user_id, role="user", content=message
         )
-        changes = await user_memory.capture(db, user_id, message, session_id=session_id, message_id=user_msg.id)
-        memory_block = await user_memory.context_block(db, user_id)
+        rejected_preferences: list[str] = []
+        instruction_keys: list[str] = []
+        changes = await user_memory.capture(db, user_id, message, session_id=session_id,
+                                           message_id=user_msg.id, rejected=rejected_preferences,
+                                           instruction_keys=instruction_keys)
+        if user_id is None and candidates:
+            rejected_preferences.extend(candidates)
+        if instruction_keys and settings.memory_lessons_enabled:
+            await memory_lessons.try_record_candidate(db, user_id, "preference_instruction",
+                                                       session_id=session_id, message_id=user_msg.id)
+        memory_block = await user_memory.context_block(db, user_id) if agent_query else ""
         if memory_block:
             history = [*history, SystemMessage(content=memory_block)]
+        receipt = user_memory.receipt_text(changes, rejected_preferences)
+        if user_id is None and candidates:
+            receipt = "请先登录后保存或删除长期偏好。"
+        receipt_context = ""
+        if receipt and agent_query:
+            receipt_context = (
+                "本轮偏好操作已由后端完成并单独回执。你只回答剩余业务问题，不重复确认保存、修改或删除。"
+                "被拒绝的整个字段未写入，不能声称保存了其中一部分。\n"
+                + receipt
+            )
+            history = [*history, SystemMessage(content=receipt_context)]
+        lesson_block, lesson_count = "", 0
+        if settings.memory_lessons_enabled and agent_query:
+            lesson_block, lesson_count = await memory_lessons.context_block(
+                db, user_id, message, has_preferences=bool(memory_block or rejected_preferences),
+            )
+            if lesson_block:
+                history = [*history, SystemMessage(content=lesson_block)]
         await db.commit()  # 先落用户那句话：后面模型调用失败也不该丢用户的提问
 
-    if changes:
+    if changes or rejected_preferences:
         yield {"type": "memory", "data": {"updated": [user_memory.LABELS[k] for k, v in changes.items() if v is not None],
-                                            "deleted": [user_memory.LABELS[k] for k, v in changes.items() if v is None]}}
+                                            "deleted": [user_memory.LABELS[k] for k, v in changes.items() if v is None],
+                                            "rejected": [user_memory.LABELS[k] for k in rejected_preferences]}}
 
     refs: list[dict] = []
     hit_tiers = {"evidenced": 0, "semantic_only": 0}
-    agent = get_agent(user_id)
     announced: set[str] = set()
     persisted = False
     evidence: list[str] = []
-    guard = SentenceGuard(evidence, mask)
+    guard = SentenceGuard(evidence, mask, memory_receipt=bool(receipt))
     usage: dict[str, int | None] = {"input": 0, "output": 0}
+    audit_task = None
 
     try:
+        if receipt:
+            # 事务成功后才能发确认；固定回执绕过模型，输出与入库共用 guard.sent。
+            prefix = mask(receipt) + ("\n\n" if agent_query else "")
+            guard.sent = prefix
+            yield {"type": "token", "data": prefix}
+        if agent_query and settings.memory_consensus_mode == "shadow":
+            audit_task = asyncio.create_task(memory_consensus.audit(agent_query, memory_block, window.summary))
         try:
-            async for ev in agent.astream_events(
-                
-                # history ：当前会话的历史对话消息数组（SystemMessage / HumanMessage / AIMessage）
-                {"messages": [*history, HumanMessage(content=message)]}, version="v2"
-            ):
+            async for ev in _agent_events(user_id, history, agent_query):
                 kind = ev["event"]
                 if kind == "on_tool_start":
                     name = ev.get("name", "")
@@ -518,7 +553,7 @@ async def _stream_answer(
         deduped = _dedup_refs(refs)
 
         async with AsyncSessionLocal() as db:
-            await save_message(
+            assistant_msg = await save_message(
                 db,
                 session_id=session_id,
                 user_id=user_id,
@@ -526,10 +561,14 @@ async def _stream_answer(
                 content=answer,
                 refs=deduped or None,
             )
+            if settings.memory_lessons_enabled and any(i.kind == "hedged" for i in guard.decision.interventions):
+                await memory_lessons.try_record_candidate(db, user_id, "policy_evidence_gap",
+                                                           session_id=session_id, message_id=assistant_msg.id)
             await db.commit()
         persisted = True
 
         yield {"type": "refs", "data": deduped}
+        shadow = await audit_task if audit_task is not None else memory_consensus.ShadowReport()
         obs = {
             "history_chars": history_chars,
             "history_messages": window.count,
@@ -542,6 +581,15 @@ async def _stream_answer(
             # 没有这一列就发现不了"摘要把省下的预算又吃了回去"；上限由 chat_summary_target_chars 兜住。
             "summary_chars": len(window.summary),
             "memory_chars": len(memory_block),
+            "memory_receipt_chars": len(receipt),
+            "memory_receipt_context_chars": len(receipt_context),
+            "agent_called": bool(agent_query),
+            "memory_rejected": len(rejected_preferences),
+            "lesson_chars": len(lesson_block),
+            "lessons_used": lesson_count,
+            "memory_consensus_status": shadow.status,
+            "memory_consensus_input_tokens": shadow.input_tokens,
+            "memory_consensus_output_tokens": shadow.output_tokens,
             "history_gap": window.has_gap,
             # 商品候选里"有词面/型号依据"和"仅语义相近"各占多少（同一轮多次 search_goods 累加）。
             # 这是裁撤类改动的先行仪器：没有它，"语义路永远有结果"造成的占比只能靠猜。
@@ -551,7 +599,8 @@ async def _stream_answer(
             # 只含 messages 里的 content 总长，而且**含模型自己答案的长度**（guard.raw）：
             # 所以它不能拿来推算 tokenizer 比率。真正的历史边际是标定实测的
             # 0.572~0.606 token/字（eval/calib_results.json），别拿 in_tokens 除这个字段。
-            "message_chars": history_chars + len(window.summary) + len(memory_block) + len(message) + len(guard.raw),
+            "message_chars": (history_chars + len(window.summary) + len(memory_block) + len(lesson_block)
+                              + len(receipt_context) + len(agent_query) + len(guard.raw)) if agent_query else 0,
             "raw_chars": len(guard.raw),
             "final_chars": len(guard.sent),
             "in_tokens": usage["input"] or 0,
@@ -568,19 +617,33 @@ async def _stream_answer(
             gsum["raw"] = guard.raw
         yield {"type": "done", "data": {
             "blocked": False, "session_id": session_id, "guard": gsum,
+            "answer_source": ("agent_with_memory_receipt" if agent_query else "memory_receipt") if receipt else "agent",
             "usage": {"input_tokens": usage["input"] or None,
                       "output_tokens": usage["output"] or None},
             "obs": obs,
         }}
         _log_obs(session_id, user_id, refs, guard, usage, obs)
     finally:
+        if audit_task is not None:
+            audit_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await audit_task
         # 客户端中途关页面时，Starlette 会在上面某个 yield 处抛 GeneratorExit。
         # 已经生成的那半段回答也要落库，否则用户重新打开会话时，
         # 模型下一轮看到的上下文里会出现"用户问了但没人回答"的断裂。
-        if not persisted and guard.raw:
+        if not persisted and guard.sent:
             # 用 guard.sent 而不是原始 pieces：中断时已经发出去的那半段
             # 是脱敏后的文本，落库的必须和用户看到的一致
             await _persist_partial(session_id, user_id, guard.sent, _dedup_refs(refs))
+
+
+async def _agent_events(user_id: int | None, history: list, query: str):
+    if not query:
+        return
+    async for event in get_agent(user_id).astream_events(
+        {"messages": [*history, HumanMessage(content=query)]}, version="v2"
+    ):
+        yield event
 
 
 async def _persist_partial(session_id: str, user_id: int | None, text: str, refs: list) -> None:
@@ -613,13 +676,15 @@ def _log_obs(session_id, user_id, refs, guard, usage, obs: dict) -> None:
         "history_chars=%s history_messages=%s stop_reason=%s over_budget=%s "
         "current_user_chars=%s message_chars=%s raw_chars=%s final_chars=%s "
         "in_tokens=%s out_tokens=%s refs=%s summary_chars=%s memory_chars=%s history_gap=%s "
-        "goods_hits_evidenced=%s goods_hits_semantic_only=%s",
+        "goods_hits_evidenced=%s goods_hits_semantic_only=%s memory_rejected=%s "
+        "lesson_chars=%s lessons_used=%s memory_consensus_status=%s",
         session_id, user_id, tools, guard.decision.triggered, guard.decision.kinds,
         len(guard.decision.interventions), obs["history_chars"], obs["history_messages"],
         obs["stop_reason"], obs["history_over_budget"], obs["current_user_chars"],
         obs["message_chars"], obs["raw_chars"], obs["final_chars"],
         obs["in_tokens"], obs["out_tokens"], len(refs), obs["summary_chars"], obs["memory_chars"], obs["history_gap"],
         obs["goods_hits_evidenced"], obs["goods_hits_semantic_only"],
+        obs["memory_rejected"], obs["lesson_chars"], obs["lessons_used"], obs["memory_consensus_status"],
     )
 
 

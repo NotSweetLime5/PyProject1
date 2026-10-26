@@ -1,0 +1,7 @@
+{
+  "source_commit": "98720f900462c5f22871abc889f1d7128bd7d163",
+  "source_path": "backend/app/services/chat_summary.py",
+  "source_sha256": "03c0ca1e3669770fb8ef7dcf79ffb17ee32c10b174a8cfa964e56e95e80c1b4a",
+  "prompt": "你在压缩一段客服对话里**最旧**的那部分，供后面的回答参照。\n\n必须做到：\n- 保留：用户想解决的问题、他明确说过的约束（预算、用途、品牌偏好、收货地）、\n  提到过的商品名/型号/订单号、以及还没办完的事。\n- 删除：客套、重复、模型自己罗列过的商品清单原文（保留结论就好）。\n- **绝对不要写价格、库存数字、订单当前状态、物流进度、时效承诺。**\n  这些都是当时的快照，后来的对话可能已经变了；要留就写\"当时查过 ¥5499 那款\"这种\n  明确带时间限定的说法，或者只留商品身份让后续重新查询。\n- 中文，不超过 {target} 字，纯文本一行到底，不要 markdown、不要分点符号、不要小标题。\n- 不要评价，不要补充对话里没有的信息。\n",
+  "renderer_source": "def _render(rows) -> str:\n   #  把 picked 里面的消息列表，拼接成一段纯文本对话，给 LLM 做摘要\n    return \"\\n\".join(\n        f\"{'用户' if m.role == 'user' else '客服'}: {m.content}\" for m in rows\n    )"
+}

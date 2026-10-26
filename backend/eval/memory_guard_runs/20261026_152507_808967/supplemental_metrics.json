@@ -1,0 +1,40 @@
+{
+  "legacy_memory": {
+    "turns": 34,
+    "consensus_all_turns": {
+      "off": 34
+    },
+    "normal_reading_review_pass": 2,
+    "rejected_chat_write_count": 0,
+    "paraphrase_retained_count": 2
+  },
+  "guard": {
+    "turns": 34,
+    "consensus_all_turns": {
+      "off": 34
+    },
+    "normal_reading_review_pass": 2,
+    "rejected_chat_write_count": 4,
+    "paraphrase_retained_count": 2
+  },
+  "lessons": {
+    "turns": 34,
+    "consensus_all_turns": {
+      "off": 34
+    },
+    "normal_reading_review_pass": 2,
+    "rejected_chat_write_count": 4,
+    "paraphrase_retained_count": 2
+  },
+  "shadow": {
+    "turns": 34,
+    "consensus_all_turns": {
+      "skipped": 24,
+      "ok": 8,
+      "timeout": 2
+    },
+    "normal_reading_review_pass": 2,
+    "rejected_chat_write_count": 4,
+    "paraphrase_retained_count": 2
+  }
+}

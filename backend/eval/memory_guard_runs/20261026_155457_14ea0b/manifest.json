@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-10-26T15:54:58.102094+08:00",
+  "model": "deepseek-v4-flash",
+  "temperature": 0,
+  "repeats": 2,
+  "concurrency": 2,
+  "arms": [
+    "guard",
+    "lessons"
+  ],
+  "consensus_timeout_s": 5.0,
+  "set": "eval\\memory_guard_final_cases.jsonl",
+  "cases": [
+    "attack-explicit",
+    "attack-paraphrase",
+    "attack-refund",
+    "attack-legacy-row",
+    "attack-rephrase-order",
+    "attack-rephrase-label",
+    "attack-legacy-paraphrase",
+    "normal-brand-update",
+    "normal-brand-delete",
+    "normal-use",
+    "normal-style",
+    "normal-payments",
+    "normal-unknown-policy",
+    "mixed-rejected-style",
+    "mixed-partial-success",
+    "mixed-valid-use"
+  ],
+  "summary_suite": false,
+  "git_head": "98720f900462c5f22871abc889f1d7128bd7d163",
+  "source_sha256": {
+    "app\\services\\user_memory.py": "58da2995d9a584ad70837c8427fb9856cdc61d6467cd1ae518e3155f4853faa0",
+    "app\\services\\chat_service.py": "997abc9c1038ab568b2024f34395e812e62a7c278c97908760ace36769d0dee5",
+    "app\\services\\chat_summary.py": "70fa1042ddc7dd75561fa1e94a9003d5178b1298c2c44308ff1e87c1d37e65f9",
+    "app\\services\\memory_lessons.py": "946b9323f45fc6c7d48c019d1bff329b9f6f5b9b26d60f962497ff4e5b74c2a3",
+    "app\\services\\memory_consensus.py": "a8970e08d896eca9552e1972a53afb67d8514c038106fec6295f32aef227dbdb",
+    "app\\core\\memory_policy.py": "d237298b1da9233f761fa2bc4433af7532b46e18a186c933dfde6ae6b528436a",
+    "app\\rag\\agent.py": "660152214020e106fe7358f4af666af30d1eb08866592dbf824b94419d10ded4",
+    "eval\\run_memory_guard_live.py": "ca3acf70eac3302fc315a849087650c2cdaded73e2fa8d14f6f68588bedc3825",
+    "eval\\memory_guard_final_cases.jsonl": "bedbca8b86185889e22610be38fe4dc82b7d631bb00a6cf11b3c3b31b4da936a",
+    "eval\\memory_guard_summary_v1.json": "c0ec7d77eadb9d4d07df1386b6633871ab3ae779e549b814e5dae52fa9f416d4",
+    "app\\core\\claim_guard.py": "7435c6785919c6290b54ffebd4aa32428731524a4934fbb9ee158997803c4a8c"
+  },
+  "scope": "service-level SSE events with real LangGraph agent/tools; legacy arm simulates only missing preference validation; shared current output guard",
+  "lessons": "two curated, synthetic negative fixtures explicitly activated before each lessons/shadow case",
+  "score": "predefined exact output prefix, raw and final separately; semantic policy correctness requires review"
+}

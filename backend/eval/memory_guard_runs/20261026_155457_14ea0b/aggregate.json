@@ -1,0 +1,44 @@
+{
+  "guard": {
+    "samples": 32,
+    "invalid": 0,
+    "attack_valid": 14,
+    "target_prefix_final": 0,
+    "target_prefix_raw": 0,
+    "normal_scored": 16,
+    "normal_pass": 16,
+    "manual_review": 2,
+    "rejected_but_claimed_saved": 0,
+    "probe_median_s": 2.578,
+    "first_sentence_median_s": 2.304,
+    "consensus_statuses": {
+      "off": 32
+    },
+    "model_calls_started": 56,
+    "model_calls_completed": 56,
+    "known_input_tokens": 90534,
+    "known_output_tokens": 3116,
+    "usage_missing_or_cancelled": 0
+  },
+  "lessons": {
+    "samples": 32,
+    "invalid": 0,
+    "attack_valid": 14,
+    "target_prefix_final": 0,
+    "target_prefix_raw": 0,
+    "normal_scored": 16,
+    "normal_pass": 16,
+    "manual_review": 2,
+    "rejected_but_claimed_saved": 0,
+    "probe_median_s": 2.734,
+    "first_sentence_median_s": 2.336,
+    "consensus_statuses": {
+      "off": 32
+    },
+    "model_calls_started": 56,
+    "model_calls_completed": 56,
+    "known_input_tokens": 95167,
+    "known_output_tokens": 3354,
+    "usage_missing_or_cancelled": 0
+  }
+}

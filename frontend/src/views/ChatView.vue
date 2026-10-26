@@ -209,6 +209,7 @@ async function send(text) {
           const parts = []
           if (e.updated?.length) parts.push(`已记住：${e.updated.join('、')}`)
           if (e.deleted?.length) parts.push(`已删除：${e.deleted.join('、')}`)
+          if (e.rejected?.length) parts.push(`未保存：${e.rejected.join('、')}，请按长期偏好面板的填写要求重新设置`)
           notice.value = parts.join('；')
         },
       },

@@ -221,7 +221,7 @@ def hedge(sentence: str) -> str:
 
 @dataclass
 class Intervention:
-    kind: str          # masked | hedged
+    kind: str          # masked | hedged | memory_ack_removed
     before: str
     after: str
 
@@ -275,6 +275,17 @@ def apply_decision(sentence: str, decision: GuardDecision) -> str:
     return decision.interventions[-1].after if decision.interventions else sentence
 
 
+def _memory_write_claim(sentence: str) -> bool:
+    # 在已有后端回执的轮次，生成正文不再重复确认写入；普通业务事实仍由原护栏处理。
+    if re.search(r"记住|记下了|记好了|记妥", sentence):
+        return True
+    state = re.search(r"保存|删除|清除|更新|修改|记录", sentence)
+    return bool(state and (
+        re.search(r"偏好|回答风格|常用用途|品牌偏好|这项设置|这条设置", sentence)
+        or re.match(r"\s*(?:我)?(?:已|已经|未|没有|不会|不能)", sentence)
+    ))
+
+
 class SentenceGuard:
     """按句缓冲的回答护栏。
 
@@ -284,12 +295,14 @@ class SentenceGuard:
     policy_mode 由调用方在 Agent 真的调用 search_faq 后打开，肯定断言护栏才生效。
     """
 
-    def __init__(self, evidence: list[str], mask, policy_mode: bool = False) -> None:
+    def __init__(self, evidence: list[str], mask, policy_mode: bool = False,
+                 *, memory_receipt: bool = False) -> None:
         # 传进来的是那个"活"列表本身：证据是工具调用结束时才陆续追加的，
         # 构造时快照会永远拿到空列表。
         self.evidence = evidence
         self.mask = mask
         self.policy_mode = policy_mode
+        self.memory_receipt = memory_receipt
         self._buf = ""
         self.sent = ""
         self.raw = ""
@@ -319,7 +332,11 @@ class SentenceGuard:
 
     def _emit(self, sentence: str) -> str:
         self.raw += sentence
-        out, d = inspect_sentence(sentence, self.evidence, self.mask, policy_mode=self.policy_mode)
+        if self.memory_receipt and _memory_write_claim(sentence):
+            out = ""
+            d = GuardDecision([Intervention("memory_ack_removed", sentence, "")])
+        else:
+            out, d = inspect_sentence(sentence, self.evidence, self.mask, policy_mode=self.policy_mode)
         self.decision.interventions.extend(d.interventions)
         self.hits = len(self.decision.interventions)
         self.sent += out

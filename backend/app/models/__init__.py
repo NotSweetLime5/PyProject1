@@ -5,6 +5,7 @@ from app.models.goods import Goods, GoodsImage
 from app.models.cart import CartItem
 from app.models.order import Order, OrderItem
 from app.models.custcare import ChatSession, Faq, SensitiveWord, ChatMessage, UserMemory
+from app.models.memory_lesson import MemoryLesson
 
 __all__ = [
     "Base",
@@ -23,4 +24,5 @@ __all__ = [
     "ChatMessage",
     "ChatSession",
     "UserMemory",
+    "MemoryLesson",
 ]
